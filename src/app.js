@@ -1,22 +1,36 @@
-const express=require('express')
+const express = require('express')
 
-const app=express();
-
-app.use('/',(req,res)=>{
-    res.send(' fasssyaz')
-})
-app.use('/hello',(req,res)=>{
-    res.send('hello fayaz')
-})
-app.use('/test',(req,res)=>{
-    res.send('hello test')
-})
-app.use('/test/lo',(req,res)=>{
-    res.send('hello test lo')
-})
+const connectDB = require('./config/database');
+const User = require('./models/userSchema');
+const cookieParser = require('cookie-parser')
 
 
+const app = express();
+app.use(express.json())
+app.use(cookieParser())
 
-app.listen(3001,()=>{
-    console.log(`server running at http://localhost:3000/`)
-});
+const PORT = 3000;
+
+
+const authRouter=require('./routes/authRouter')
+app.use('/',authRouter)
+
+const profileRouter=require('./routes/ProfileRouter')
+app.use('/',profileRouter)
+
+const connectionRouter=require('./routes/connectionRouter')
+app.use('/',connectionRouter)
+
+const userRouter=require('./routes/userRouter')
+app.use('/',userRouter)
+
+
+
+
+connectDB().then(() => {
+  console.log('connected');
+  app.listen(PORT, () => {
+    console.log(`server running at http://localhost:${PORT}/`)
+  });
+
+}).catch(err => console.log('db cannot be cannectod'))
