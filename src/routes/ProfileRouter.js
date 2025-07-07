@@ -1,11 +1,13 @@
-const express =require('express')
-const { userAuth, adminAuth } = require('../middleware/auth')
+const express = require('express')
+const { userAuth, adminAuth } = require('../middleware/auth');
+const User = require('../models/userSchema');
 const profileRouter = express.Router();
+const { validateProfileData, validateNewPassword } = require('../utils/validation')
 
 //get user by profile
-profileRouter.get('/profile',userAuth, async (req, res) => {
+profileRouter.get('/profile', userAuth, async (req, res) => {
   try {
-    const user=req.user
+    const user = req.user
     res.send('we welcome ' + user)
 
   } catch (err) {
@@ -14,7 +16,7 @@ profileRouter.get('/profile',userAuth, async (req, res) => {
 })
 
 // get all users
-profileRouter.get('/feed',userAuth, async (req, res) => {
+profileRouter.get('/profile/feed', userAuth, async (req, res) => {
   try {
 
     const data = await User.find()
@@ -26,20 +28,26 @@ profileRouter.get('/feed',userAuth, async (req, res) => {
 })
 
 // delete user
-profileRouter.delete('/delete', async (req, res) => {
-  const userId = req.body.userId;
+profileRouter.delete('/profile/delete', userAuth, async (req, res) => {
+
   try {
-
+    const userId = req.body._id
+ 
     const user = await User.findByIdAndDelete(userId)
+   
 
-    res.send('deleted')
+    res.json({
+      message: "user Deleted",
+
+    })
   } catch (err) {
-    res.status(401).send("erroe")
+    res.status(401).send(err.message)
   }
 })
 
+
 //update user
-profileRouter.patch('/update/:userId', async (req, res) => {
+profileRouter.patch('/profile/update/:userId', async (req, res) => {
   const userId = req.params?.userId;
   const data = req.body;
 
@@ -68,4 +76,65 @@ profileRouter.patch('/update/:userId', async (req, res) => {
   }
 });
 
-module.exports=profileRouter;
+
+//profiel edit
+profileRouter.patch('/profile/edit', userAuth, async (req, res) => {
+
+
+  try {
+
+    if (!validateProfileData(req)) {
+      throw new Error("validation error")
+    }
+    const loggedInUser = req.user;
+
+    Object.keys(req.body).forEach((key) => (loggedInUser[key] = req.body[key]))
+    await loggedInUser.save()
+
+
+
+    res.json({
+      message: "Profile Updated Successfully",
+      data: loggedInUser,
+    })
+
+
+  } catch (err) {
+    res.status(400).send({ error: err.message });
+  }
+
+})
+
+//change password API
+profileRouter.patch('/profile/passwordEdit',userAuth,async(req,res)=>{
+  try{
+   validateNewPassword(req);
+
+   const user=req.user
+
+   const {currentPassword,newPassword}=req.body;
+
+   const isMatch=await user.comparePassword(currentPassword);
+
+   if(!isMatch){
+   return res.status(401).json({ error: "Current password is incorrect" });
+   } 
+
+   user.password=newPassword
+   await user.save()
+
+   res.status(200).json({
+    message:"user Password changed succefully"
+   })
+
+  }catch(err){
+
+    res.json({
+      message:"error happend while changing password",
+      error:err.message
+    })
+
+  }
+})
+
+module.exports = profileRouter;

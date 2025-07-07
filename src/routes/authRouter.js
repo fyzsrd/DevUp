@@ -11,13 +11,13 @@ authRouter.post('/signup', async (req, res) => {
   try {
     validateSignupData(req);
     const { firstName, lastName, emailId, password } = req.body;
-    const hashPassword = await bcrypt.hash(password, 10)
+   
 
     const user = new User({
       firstName,
       lastName,
       emailId,
-      password: hashPassword
+      password,
 
     });
 
@@ -42,7 +42,8 @@ authRouter.post('/login', async (req, res) => {
       throw new Error("Invalid Creadentials")
     }
 
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+const isPasswordValid = await user.comparePassword(password);
+
 
     if (isPasswordValid) {
       //create jwt

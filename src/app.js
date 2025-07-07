@@ -18,8 +18,8 @@ app.use('/',authRouter)
 const profileRouter=require('./routes/ProfileRouter')
 app.use('/',profileRouter)
 
-const connectionRouter=require('./routes/connectionRouter')
-app.use('/',connectionRouter)
+const requestRouter=require('./routes/requestRouter')
+app.use('/',requestRouter)
 
 const userRouter=require('./routes/userRouter')
 app.use('/',userRouter)
