@@ -33,4 +33,4 @@ connectDB().then(() => {
     console.log(`server running at http://localhost:${PORT}/`)
   });
 
-}).catch(err => console.log('db cannot be cannectod'))
+}).catch(err => console.log('db cannot be cannectod',err.message))
